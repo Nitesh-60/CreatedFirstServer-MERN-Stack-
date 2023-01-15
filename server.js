@@ -20,14 +20,40 @@ http
                     })
                     .on("data",(chunks)=>{
                         body+=chunks;
-                        console.log(chunks);
                     })
                     .on("end",()=>{
                         body = JSON.parse(body);
-                        console.log("data: ", body);
+                        let newTodo = todoList;
+                        newTodo.push(body.item);
+                        console.log(newTodo);
+                        response.writeHead("201");
                     });
-            }else{
-                response.writeHead("500");
+            }
+            else if(method === "DELETE"){ 
+                let body ="";
+                request
+                    .on("error",(err)=>{
+                        console.error(err);
+                    })
+                    .on("data",(chunks)=>{
+                        body+=chunks;
+                    })
+                    .on("end",()=>{
+                        body = JSON.parse(body);
+                        let deleteThis = body.item;
+
+                        for(let i=0;i<todoList.length;i++){
+                            if(todoList[i] === deleteThis){
+                                todoList.splice(i,1);
+                                break;
+                            }
+                        }
+
+                        response.writeHead("204")
+                    })
+            }
+            else{
+                response.writeHead("501");
             }
         }
         else{
