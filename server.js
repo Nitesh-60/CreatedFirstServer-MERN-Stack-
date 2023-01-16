@@ -1,68 +1,52 @@
-const http = require("http");
+const express = require("express");
+
+// initialization
+const app = express();
+
+app.use(express.json());
 
 const PORT = 8081;
 
 const todoList = ["Complete Node Byte", "Play Cricket"];
 
-http
-    .createServer((request, response)=>{
-        const {method,url} = request
-        if(url === "/todos"){
-            if(method === "GET"){
-                response.writeHead("200")
-                response.write(todoList.toString())
-            }
-            else if(method === "POST"){
-                let body = "";
-                request
-                    .on("error",(err)=>{
-                        console.error(err);
-                    })
-                    .on("data",(chunks)=>{
-                        body+=chunks;
-                    })
-                    .on("end",()=>{
-                        body = JSON.parse(body);
-                        let newTodo = todoList;
-                        newTodo.push(body.item);
-                        console.log(newTodo);
-                        response.writeHead("201");
-                    });
-            }
-            else if(method === "DELETE"){ 
-                let body ="";
-                request
-                    .on("error",(err)=>{
-                        console.error(err);
-                    })
-                    .on("data",(chunks)=>{
-                        body+=chunks;
-                    })
-                    .on("end",()=>{
-                        body = JSON.parse(body);
-                        let deleteThis = body.item;
+// GET Method
+app.get("/todos",(req,res)=>{
+    res.status("200").send(todoList);
+})
 
-                        for(let i=0;i<todoList.length;i++){
-                            if(todoList[i] === deleteThis){
-                                todoList.splice(i,1);
-                                break;
-                            }
-                        }
-
-                        response.writeHead("204")
-                    })
-            }
-            else{
-                response.writeHead("501");
-            }
-        }
-        else{
-            response.writeHead("404")
-        }
-        response.end();
-    })
-    .listen(PORT,()=>{
-    console.log(`Server is running in the port: ${PORT}`)
+// Post Method
+app.post("/todos",(req,res)=>{
+    let newItem = req.body.item;
+    todoList.push(newItem);
+    res.status("200").send({
+        message: "task added succesfully"
     });
+})
 
+// Delete Method
+app.delete("/todos",(req,res)=>{
+    let deleteThis = req.body.item;
+
+    // Logic
+    todoList.find((element,index)=>{
+        if(element === deleteThis){
+            todoList.splice(index,1);
+        }
+    })
     
+    res.status(203).send({
+        message: `${deleteThis} deleted succesfully`
+    })
+})
+
+app.all("/todos",(req,res)=>{
+    res.status("501").send()
+})
+
+app.all("*",(req,res)=>{
+    res.status("404").send()
+})
+
+app.listen(PORT,()=>{
+    console.log(`Server is running on port ${PORT}`)
+})
